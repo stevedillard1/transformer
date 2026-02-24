@@ -1,6 +1,7 @@
 from torch import nn
 import torch
 from data_types import Config
+from tokenizer import Tokenizer
 
 class MLP(nn.Module):
     def __init__(self, config: Config):
@@ -51,13 +52,14 @@ class TransformerBlock(nn.Module):
 
 
 class LLM(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, tokenizer:Tokenizer):
         super().__init__()
         self.embedding = torch.nn.Embedding(config.d_vocab, config.d_model)
         self.TB1 = TransformerBlock(config)
         self.TB2 = TransformerBlock(config)
         self.embedding_matrix = torch.nn.Parameter(torch.rand(config.d_vocab, config.d_model))
         self.config = config
+        self.tokenizer = tokenizer
 
 
     def forward(self, x):
@@ -74,4 +76,12 @@ class LLM(nn.Module):
     
     def map_token(self, token:int):
         return self.embedding_matrix[token]
+    
+    def generate(self, prompt:str, max_length:int = 50):
+        tokens = torch.tensor(self.tokenizer.process_tokenize_encode(prompt))
+        for _ in range(max_length):
+            output = self.forward(tokens)
+            next_token = torch.argmax(output[-1])
+            tokens = torch.cat((tokens, next_token.unsqueeze(0)))
+        return " ".join(self.tokenizer.decode(tokens.tolist()))
         

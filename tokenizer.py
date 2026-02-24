@@ -102,5 +102,12 @@ class Tokenizer:
     ) -> Counter[str]:
         vocab_freq: Counter[str] = Counter(tokenized_text)
         return vocab_freq
+    def process_tokenize_encode(self,
+        text: str,
+    ) -> Int[np.ndarray, "n_tokens"]:
+        processed_text = self.process_text(text)
+        tokenized_text = self.tokenize(processed_text)
+        encoded_text = self.encode(tokenized_text)
+        return encoded_text
 
             
