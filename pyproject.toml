@@ -8,6 +8,7 @@ dependencies = [
     "torch",
     "numpy",
     "requests",
+    "beautifulsoup4",
     "matplotlib",
     "jaxtyping",
 ]
