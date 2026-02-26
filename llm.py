@@ -67,12 +67,13 @@ class LLM(nn.Module):
     def __init__(self, config, tokenizer:Tokenizer):
         super().__init__()
         self.device = config.device
-        num_transformer_blocks = 10
+        num_transformer_blocks = config.num_transformer_blocks
         self.transformer_blocks = nn.ModuleList([TransformerBlock(config).to(self.device) for _ in range(num_transformer_blocks)])
         # self.TB1 = TransformerBlock(config).to(self.device)
         # self.TB2 = TransformerBlock(config).to(self.device)
         # Initialize embeddings with normal distribution scaled appropriately
-        self.embedding_matrix = torch.nn.Parameter(torch.randn(config.d_vocab, config.d_model) * 0.02).to(self.device)
+        self.embedding_matrix = torch.nn.Parameter(torch.randn(config.d_vocab, config.d_model)*.02).to(self.device)
+        self.positional_embedding = torch.nn.Embedding(config.d_vocab, config.d_model).to(self.device)  # Positional embeddings for up to 1000 tokens
         self.config = config
         self.tokenizer = tokenizer
 
@@ -85,7 +86,8 @@ class LLM(nn.Module):
     
     def embed(self, data):
         # Use direct indexing to preserve gradients
-        return self.embedding_matrix[data]
+        return self.embedding_matrix[data] #+ self.positional_embedding(torch.arange(data.shape[1]).to(self.device))
+    
 
     def unembed(self, data):
         return data@self.embedding_matrix.T

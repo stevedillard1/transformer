@@ -6,3 +6,4 @@ class Config:
     d_vocab:int
     d_hidden:int
     device:str
+    num_transformer_blocks:int
