@@ -67,7 +67,7 @@ class LLM(nn.Module):
     def __init__(self, config, tokenizer:Tokenizer):
         super().__init__()
         self.device = config.device
-        num_transformer_blocks = 20
+        num_transformer_blocks = 10
         self.transformer_blocks = nn.ModuleList([TransformerBlock(config).to(self.device) for _ in range(num_transformer_blocks)])
         # self.TB1 = TransformerBlock(config).to(self.device)
         # self.TB2 = TransformerBlock(config).to(self.device)
