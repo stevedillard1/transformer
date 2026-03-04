@@ -4,6 +4,8 @@ import torch.nn as nn
 import torch
 import json
 from data_types import Config
+import pickle
+
 
 def main():
     print("Hello from transformer!")
@@ -14,7 +16,10 @@ def main():
     num_episodes = int(input("number of episodes: "))
     dhidden = int(input("dhidden: "))
     num_transformer_blocks = int(input("number of transformer blocks: "))
-
+    window_size = int(input("window size: "))
+    batch_size = int(input("number to batch by: "))
+    PATH = input("name your model (no spaces): ")
+    print("\nTraining....")
     seinfeld_episodes = json.load(open('seinfeld_scripts.json', 'r'))
     episode_list = []
     for season in seinfeld_episodes.keys():
@@ -29,8 +34,7 @@ def main():
     config = Config(dmodel, len(tokenizer.vocab_arr), dhidden,device,num_transformer_blocks)
     model = LLM(config,tokenizer)
 
-    window_size = 20
-    batch_size = 50
+    
     data = torch.zeros((1, window_size+1), dtype=torch.long).to(device)
     for episode in training_episodes:
         tokenized_episode = torch.tensor(tokenizer.process_tokenize_encode(episode))
@@ -42,7 +46,6 @@ def main():
     num_epochs = 1
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-    window_size = 50
     for epoch in range(num_epochs):
             total_loss = 0
             total_n = 0
@@ -62,8 +65,12 @@ def main():
                 total_n += batch.shape[0]
                 print(f'Progress: {i*batch_size}/{data.shape[0]}, loss= {loss.item()}', end='\r')
             print(f'Epoch: {epoch+1}/{num_epochs}, Average Loss: {(total_loss/total_n)}')
+    
+    PATH = PATH+".pt" 
+    torch.save(model.state_dict(), PATH)
+    with open('config.pkl', 'wb') as f:
+        pickle.dump(config, f)
   
-    print(model.generate("Jerry and George are sitting in the coffee shop, talking about their day. Jerry says, ", max_length=100))
 
 
 
