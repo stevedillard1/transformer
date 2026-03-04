@@ -31,7 +31,7 @@ def main():
         for episode in seinfeld_episodes[season].keys():
             episode_list.append((" ".join(seinfeld_episodes[season][episode].split()))[1:])
 
-    training_episodes = episode_list[10:num_episodes+10]
+    training_episodes = episode_list[:num_episodes]
     all_episodes =" ".join(episode_list)
     tokenizer = Tokenizer()
     all_tokens = tokenizer.process_set_tokenize_text(all_episodes)
