@@ -8,8 +8,8 @@ import sys
 
 def main():
     model_name = sys.argv[1]
-    config_name = sys.argv[2]
-    with open(config_name+".pkl", 'rb') as f:
+    base_path = "./saved_models/" + model_name + "/"
+    with open(base_path + "config.pkl", 'rb') as f:
          config = pickle.load(f)
     seinfeld_episodes = json.load(open('seinfeld_scripts.json', 'r'))
     episode_list = []
@@ -22,10 +22,12 @@ def main():
 
     model = LLM(config,tokenizer)
 
-    model.load_state_dict(torch.load(model_name+".pt"))
-    user_string = input("Enter prompt to generate from: ")
-
-    print(model.generate(user_string, max_length=100))
+    model.load_state_dict(torch.load(base_path+"model.pt"))
+    while True:
+        user_string = input("\nEnter prompt to generate from. (type 'exit' to quit): \n")
+        if user_string.lower() == 'exit':
+            break
+        print(model.generate(user_string, max_length=50))
 
 
 if __name__ == "__main__":

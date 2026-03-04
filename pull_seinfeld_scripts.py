@@ -169,7 +169,7 @@ def fetch_episode_script(script_url: str) -> str:
         if script_td:
             script_content = script_td.get_text()
             # Add pound signs before character speaker names
-            script_content = mark_speaker_names(script_content)
+            # script_content = mark_speaker_names(script_content)
             return script_content.strip()
         else:
             return ""
@@ -177,8 +177,7 @@ def fetch_episode_script(script_url: str) -> str:
         print(f"    Error fetching {script_url}: {e}")
         return ""
 
-
-if __name__ == "__main__":
+def main():
     scripts = pull_seinfeld_scripts()
     
     # Print summary
@@ -194,3 +193,7 @@ if __name__ == "__main__":
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(scripts, f, ensure_ascii=False, indent=2)
     print(f"\n✓ Scripts saved to {output_file}")
+
+
+if __name__ == "__main__":
+   main()

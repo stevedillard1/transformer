@@ -58,8 +58,7 @@ class TransformerBlock(nn.Module):
 
 
     def forward(self, x):
-        x = x + self.attention_head(self.ln1(x))
-        x = x + self.mlp(self.ln2(x))
+        x = x + self.attention_head(self.ln1(x)) + self.mlp(self.ln2(x))
         return x
 
 
@@ -68,12 +67,11 @@ class LLM(nn.Module):
         super().__init__()
         self.device = config.device
         num_transformer_blocks = config.num_transformer_blocks
+        max_length = 100
         self.transformer_blocks = nn.ModuleList([TransformerBlock(config).to(self.device) for _ in range(num_transformer_blocks)])
-        # self.TB1 = TransformerBlock(config).to(self.device)
-        # self.TB2 = TransformerBlock(config).to(self.device)
         # Initialize embeddings with normal distribution scaled appropriately
         self.embedding_matrix = torch.nn.Parameter(torch.randn(config.d_vocab, config.d_model)*.02).to(self.device)
-        self.positional_embedding = torch.nn.Embedding(config.d_vocab, config.d_model).to(self.device)  # Positional embeddings for up to 1000 tokens
+        self.positional_embedding = torch.nn.Parameter(torch.randn(max_length, config.d_model)*.0).to(self.device)  # Positional embeddings for up to 1000 tokens
         self.config = config
         self.tokenizer = tokenizer
 
@@ -86,7 +84,7 @@ class LLM(nn.Module):
     
     def embed(self, data):
         # Use direct indexing to preserve gradients
-        return self.embedding_matrix[data] #+ self.positional_embedding(torch.arange(data.shape[1]).to(self.device))
+        return self.embedding_matrix[data] + self.positional_embedding[torch.arange(data.shape[1]).to(self.device)]
     
 
     def unembed(self, data):
@@ -95,11 +93,12 @@ class LLM(nn.Module):
     def map_token(self, token:int):
         return self.embedding_matrix[token]
     
-    def generate(self, prompt:str, max_length:int = 50):
+    def generate(self, prompt:str, max_length:int = 50, context_window:int = 30):
             tokens = torch.tensor(self.tokenizer.process_tokenize_encode(prompt)).to(self.device)
             input_size = tokens.shape[0]
             for _ in range(max_length):
-                output = self.forward(tokens[-input_size:].reshape(1,-1))
+                context_window = max(context_window, input_size)
+                output = self.forward(tokens[-context_window:].reshape(1,-1))
                 next_token = torch.argmax(output[0,-1])
                 tokens = torch.cat((tokens, next_token.unsqueeze(0)))
             return self.tokenizer.decode(tokens.tolist())

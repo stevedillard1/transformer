@@ -5,6 +5,8 @@ import torch
 import json
 from data_types import Config
 import pickle
+import os
+from pull_seinfeld_scripts import main as pull_seinfeld_scripts_main
 
 
 def main():
@@ -19,6 +21,9 @@ def main():
     window_size = int(input("window size: "))
     batch_size = int(input("number to batch by: "))
     PATH = input("name your model (no spaces): ")
+    if not os.path.exists('seinfeld_scripts.json'):
+        print("Pulling Seinfeld scripts from IMSDb...")
+        pull_seinfeld_scripts_main()
     print("\nTraining....")
     seinfeld_episodes = json.load(open('seinfeld_scripts.json', 'r'))
     episode_list = []
@@ -26,7 +31,7 @@ def main():
         for episode in seinfeld_episodes[season].keys():
             episode_list.append((" ".join(seinfeld_episodes[season][episode].split()))[1:])
 
-    training_episodes = episode_list[:num_episodes]
+    training_episodes = episode_list[10:num_episodes+10]
     all_episodes =" ".join(episode_list)
     tokenizer = Tokenizer()
     all_tokens = tokenizer.process_set_tokenize_text(all_episodes)
@@ -41,6 +46,7 @@ def main():
         data = torch.cat([data, tokenized_episode.unfold(0, window_size+1, 1).to(device)], dim=0)
 
     data = data[1:]
+    print(batch_size, data.shape)
     data_loader = torch.utils.data.DataLoader(data, batch_size=batch_size, shuffle=True)  
 
     num_epochs = 1
@@ -65,10 +71,11 @@ def main():
                 total_n += batch.shape[0]
                 print(f'Progress: {i*batch_size}/{data.shape[0]}, loss= {loss.item()}', end='\r')
             print(f'Epoch: {epoch+1}/{num_epochs}, Average Loss: {(total_loss/total_n)}')
-    
-    PATH = PATH+".pt" 
-    torch.save(model.state_dict(), PATH)
-    with open('config.pkl', 'wb') as f:
+    base_path = "./saved_models/" + PATH + "/"
+    model_path = base_path + "model.pt" 
+    os.makedirs(base_path, exist_ok=True)
+    torch.save(model.state_dict(), model_path)
+    with open(base_path + 'config.pkl', 'wb') as f:
         pickle.dump(config, f)
   
 

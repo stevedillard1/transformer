@@ -21,7 +21,10 @@ class Tokenizer:
     ) -> Int[np.ndarray, "n_tokens"]:
             if isinstance(text, str):
                 text = self.tokenize(text)
-            return np.array([self.vocab_dict[word] for word in text])
+            to_return = np.array([self.vocab_dict[word] for word in text if word in self.vocab_dict], dtype=np.int64)
+            if len(to_return) < len(text):
+                print(f"Warning: {len(text)-len(to_return)} out of {len(text)} tokens were not in the vocabulary and were skipped during encoding.")
+            return to_return
 
     def decode(self,
         encoded_text: list[int],
