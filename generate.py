@@ -8,8 +8,8 @@ import sys
 
 def main():
     model_name = sys.argv[1]
-
-    with open('config.pkl', 'rb') as f:
+    config_name = sys.argv[2]
+    with open(config_name+".pkl", 'rb') as f:
          config = pickle.load(f)
     seinfeld_episodes = json.load(open('seinfeld_scripts.json', 'r'))
     episode_list = []
